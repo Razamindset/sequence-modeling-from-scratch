@@ -1,17 +1,23 @@
 import numpy as np
 
 #! The following code uses Mini Batch Gradient decent with ADAM for leaning rate control
+# Weight decay adds a "cost" to the size of the weights. The model now has two goals:
+#   1. Minimize the prediction error (MSE).
+#   2. Keep the weights as small as possible.
+#   total Loss = {MSE} + sum(w**2)* lambda/(2) 
 
 tol = 1e-6
 patience = 14
 
+ 
 class LinearRegressionAdam:
-    def __init__(self, lr=0.001, n_iters=10000, batch_size=32, beta1=0.9, beta2=0.999, epsilon=1e-8):
+    def __init__(self, lr=0.001, n_iters=10000, batch_size=32, beta1=0.9, beta2=0.999, epsilon=1e-8, weight_decay=0.01):
         self.lr = lr
         self.n_iters = n_iters
         self.beta1 = beta1
         self.beta2 = beta2
         self.epsilon = epsilon
+        self.weight_decay = weight_decay
         self.w, self.b = None, None
         self.batch_size = batch_size
         self.losses = []
@@ -52,6 +58,12 @@ class LinearRegressionAdam:
 
                 dw = (1 / len(xi)) * np.dot(xi.T, error)
                 db = (1 / len(xi)) * np.sum(error)
+
+                # simple weight decay
+                # The derivative of (lambda/2 * w^2) is (lambda * w)
+                # see notes for details
+                dw += self.weight_decay * self.w
+
 
                 # first moment , momentum
                 m_w = self.beta1 * m_w + (1-self.beta1) * dw
