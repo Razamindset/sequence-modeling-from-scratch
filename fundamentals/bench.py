@@ -7,6 +7,7 @@ from sklearn.model_selection import train_test_split
 from linear_regression.full_batch import LinearRegression as BatchLR
 from linear_regression.with_sgd import LinearRegressionSGD as SGDLR
 from linear_regression.mini_batch import LinearRegressionMiniBatch as MiniBatchLR
+from linear_regression.with_adam import LinearRegressionAdam as MiniBatchADAM
 
 
 def run_benchmark(model, X, y, name):
@@ -20,7 +21,6 @@ def run_benchmark(model, X, y, name):
     print(f"   Best MSE Achieved: {model.best_loss:.6f}")
     print(f"   Total Time:        {duration:.4f}s")
     print(f"   Stop Condition:    Epoch {len(model.losses)}")
-    print(f"   Time seconds:    Duration {duration}")
     print(f"-------------------------------------------\n")
     return model.losses, duration
 
@@ -32,7 +32,8 @@ X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2)
 models = {
     "Full Batch": BatchLR(lr=0.01, n_iters=10000),
     "True SGD": SGDLR(lr=0.0001, n_iters=10), # 1 epoch = 100k updates
-    "Mini-Batch (64)": MiniBatchLR(lr=0.001, n_iters=100, batch_size=64)
+    "Mini-Batch (64)": MiniBatchLR(lr=0.001, n_iters=100, batch_size=64),
+    "Adam mini-Batch (64)": MiniBatchADAM(lr=0.001, n_iters=100, batch_size=64)
 }
 
 results = {}
