@@ -1,7 +1,11 @@
 import numpy as np
-import matplotlib.pyplot as plt
-from sklearn import datasets
-from sklearn.model_selection import train_test_split
+# import matplotlib.pyplot as plt
+# from sklearn import datasets
+# from sklearn.model_selection import train_test_split
+
+
+tol = 1e-6
+patience = 10 
 
 #! The following code uses full batch gradient decent 
 
@@ -11,17 +15,19 @@ class LinearRegression:
         self.n_iters = n_iters
         self.w = None
         self.b = None
+        self.losses = []
+        self.best_loss = None
     
-    def fit(self, X, y):
+    def fit(self, X, y, verbose=False):
         n_samples, n_features = X.shape
 
         # The sixe of the weights is same as that fo the features
         self.w = np.zeros(n_features)
         self.b = 0
-        self.losses = []
 
-        print("W shape: ", self.w.shape)
-        loss = 0
+        # Early Stopping variables
+        self.best_loss = float('inf')
+        wait = 0
 
         # Training loop
         for epoch in range(self.n_iters):
@@ -44,38 +50,48 @@ class LinearRegression:
             self.b -= self.lr * db
 
             # compute loss
-            loss = (1/n_samples) * np.sum(error ** 2)
-            self.losses.append(loss)
+            current_loss = (1/n_samples) * np.sum(error ** 2)
+            self.losses.append(current_loss)
 
-            if epoch % 100 == 0:
-                print(f"Epoch {epoch+1}/{self.n_iters}, Loss: {loss:.6f}")
+            if current_loss < self.best_loss - tol:
+                self.best_loss = current_loss
+                wait = 0  # Reset the wait counter
+            else:
+                wait += 1 # No significant improvement
+        
+            if wait >= patience:
+                print(f"Early stopping at epoch {epoch}. Loss has not improved for {patience} epochs.")
+                break
+
+            if epoch % 100 == 0 and verbose:
+                print(f"Epoch {epoch+1}/{self.n_iters}, Loss: {self.losses[-1]:.6f}")
 
     def predict(self, x):
         y_pred = np.dot(x, self.w) + self.b
         return y_pred
 
-# Prepare the data
-X, y = datasets.make_regression(n_samples=10_000, n_features=4, noise=2, random_state=47)
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=1234)
+# # Prepare the data
+# X, y = datasets.make_regression(n_samples=10_000, n_features=4, noise=2, random_state=47)
+# X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=1234)
 
-model = LinearRegression(n_iters=1000, lr=0.01)
-model.fit(X_train, y_train)
+# model = LinearRegression(n_iters=1000, lr=0.01)
+# model.fit(X_train, y_train)
 
-plt.figure()
-plt.plot(model.losses)
-plt.xlabel("Epoch")
-plt.ylabel("Training Loss (MSE)")
-plt.title("Training Loss Over Time")
-plt.grid(True)
-plt.show()
+# plt.figure()
+# plt.plot(model.losses)
+# plt.xlabel("Epoch")
+# plt.ylabel("Training Loss (MSE)")
+# plt.title("Training Loss Over Time")
+# plt.grid(True)
+# plt.show()
 
-# Make predictions
-predictions = model.predict(X_test)
+# # Make predictions
+# predictions = model.predict(X_test)
 
-plt.figure()
-plt.scatter(y_test, predictions, alpha=0.6)
-plt.xlabel("True Values")
-plt.ylabel("Predicted Values")
-plt.title("True vs Predicted")
-plt.grid(True)
-plt.show()
+# plt.figure()
+# plt.scatter(y_test, predictions, alpha=0.6)
+# plt.xlabel("True Values")
+# plt.ylabel("Predicted Values")
+# plt.title("True vs Predicted")
+# plt.grid(True)
+# plt.show()

@@ -1,7 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
-# (Assuming your SGD class is in a file named SGD.py)
-from SGD import SGD 
+from fundamentals.visualize.SGD import SGD 
 
 def loss_fn(w):
     # The function we are trying to minimize
