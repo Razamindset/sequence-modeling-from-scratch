@@ -10,12 +10,12 @@ from sklearn.model_selection import train_test_split
 #! By Removing Noise in the data we can achieve a perect fit even in recursive operation
 #! thirdly smoothing the data by moving average will also help with the noise
 
-WINDOW_SIZE=20
+WINDOW_SIZE=50
 DDATA_POINTS=1000
 TRAIN_SPLIT = 0.8
 
 # 200 steps becase after split only 200 data points are in the test dataset
-FUTURE_STEPS=200
+FUTURE_STEPS=1000
 START_POINT=0
 
 def gen_data(n_points=1000):
@@ -84,4 +84,16 @@ plt.xlabel("Time Steps")
 plt.ylabel("Value")
 plt.legend()
 
+plt.show()
+
+plt.figure(figsize=(10, 5))
+
+# model.weights should be an array of size 50 (WINDOW_SIZE)
+plt.bar(range(WINDOW_SIZE), model.w, color='royalblue', alpha=0.7)
+
+plt.title("Model Weights: How much the model 'trusts' each lag")
+plt.xlabel("Lag Index (0 is oldest, 19 is most recent)")
+plt.ylabel("Weight Value")
+plt.xticks(range(WINDOW_SIZE))
+plt.grid(axis='y', linestyle='--', alpha=0.6)
 plt.show()
