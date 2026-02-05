@@ -38,3 +38,17 @@ class Tanh(Activation):
             return 1 - np.tanh(x)**2
 
         super().__init__(tanh, tanh_prime)
+
+class Softmax:
+    def forward(self, X):
+        self.input = X
+        # Subtracting max for numerical stability
+        exp_values = np.exp(X - np.max(X, axis=1, keepdims=True))
+        self.output = exp_values / np.sum(exp_values, axis=1, keepdims=True)
+        return self.output
+
+    def backward(self, output_gradient, learning_rate):
+        # Note: In classification, Softmax is almost always combined with 
+        # Cross-Entropy loss. Their combined gradient is very simple: (y_pred - y_true).
+        # We will handle this 'Shortcut' in our training loop for efficiency.
+        return output_gradient

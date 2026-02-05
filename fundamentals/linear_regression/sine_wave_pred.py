@@ -1,6 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from linear_regression.with_adam import LinearRegressionAdam 
+from with_adam import LinearRegressionAdam 
 from sklearn.model_selection import train_test_split
 
 # The idea is to predict the next vlaue int he sequnce given the past 10 20 vlaues 

@@ -1,13 +1,12 @@
 import time
 import matplotlib.pyplot as plt
-import numpy as np
 from sklearn import datasets
 from sklearn.model_selection import train_test_split
 
-from linear_regression.full_batch import LinearRegression as BatchLR
-from linear_regression.with_sgd import LinearRegressionSGD as SGDLR
-from linear_regression.mini_batch import LinearRegressionMiniBatch as MiniBatchLR
-from linear_regression.with_adam import LinearRegressionAdam as MiniBatchADAM
+from full_batch import LinearRegression as BatchLR
+from with_sgd import LinearRegressionSGD as SGDLR
+from mini_batch import LinearRegressionMiniBatch as MiniBatchLR
+from with_adam import LinearRegressionAdam as MiniBatchADAM
 
 
 def run_benchmark(model, X, y, name):

@@ -2,9 +2,15 @@ import numpy as np
 
 class Layer:
     def __init__(self, input_size, hidden_size):
-        # multiply with 0.01 so the weights are not too big 
-        self.weights = np.random.rand(input_size, hidden_size)
-        self.bias = np.random.rand(1, hidden_size)
+        # The Xavier solution scales the weights based on the number of inputs to keep the variance of the signal 
+        # constant across layers.
+        limit = np.sqrt(6 / (input_size + hidden_size))
+        self.weights = np.random.uniform(-limit, limit, (input_size, hidden_size))
+        self.bias = np.zeros((1, hidden_size))
+
+        # Some momentum
+        self.v_w = np.zeros_like(self.weights)
+        self.v_b = np.zeros_like(self.bias)
 
     def forward(self, X):
         # X is the activation from the previous layer
@@ -36,8 +42,15 @@ class Layer:
         input_gradient = np.dot(delta_curr, self.weights.T)
 
         # 5. Update Parameters using the Gradient Descent rule
-        self.weights -= learning_rate * weights_gradient
-        self.bias -= learning_rate * biases_gradient
+        # self.weights -= learning_rate * weights_gradient
+        # self.bias -= learning_rate * biases_gradient
+        
+        beta = 0.9 # Typical momentum value
+        self.v_w = beta * self.v_w + (1 - beta) * weights_gradient
+        self.v_b = beta * self.v_b + (1 - beta) * biases_gradient
+
+        self.weights -= learning_rate * self.v_w
+        self.bias -= learning_rate * self.v_b
 
         return input_gradient
     
