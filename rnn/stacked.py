@@ -52,12 +52,18 @@ class RNNLayer:
         self.dWhh = np.zeros_like(self.Whh)
         self.dbh = np.zeros_like(self.bh)
 
+        # track gradienat norms
+        step_norms = []
+
         for t in reversed(range(T)):
             # Total gradient = (From Layer Above) + (From Next Time Step)
             dh_total = dh_out[t:t+1] + dh_next
             
             # 1. Tanh Jacobian gate
             db_t = (1 - self.h_states[t]**2) * dh_total
+
+            # Record the norm of the gradient at this time step
+            step_norms.append(np.linalg.norm(db_t))
             
             # 2. Collect gradients for weights
             self.dWxh += np.dot(self.x_seq[t:t+1].T, db_t)
@@ -79,7 +85,7 @@ class RNNLayer:
             # The Chain Rule: dL/dx_t = (dL/dz_t) * (dz_t/dx_t) = db_t * Wxh
             dx_seq[t] = np.dot(db_t, self.Wxh.T)
             
-        return dx_seq
+        return dx_seq, step_norms[::-1] # Return gradients AND norms
 
     def update(self):
         # Clip to prevent exploding gradients
@@ -129,9 +135,12 @@ class StackedRNNModel:
         dh_from_output = np.dot(dy, self.Why.T)
         
         # 3. Backprop through RNN layers (Reverse Order)
+        # Store norms for all layers
+        all_layer_norms = []
         current_grad = dh_from_output
         for layer in reversed(self.layers):
-            current_grad = layer.backward(current_grad)
+            current_grad, norms = layer.backward(current_grad)
+            all_layer_norms.append(norms)
             
         # Update everything
         self.Why -= self.lr * dWhy
@@ -139,6 +148,7 @@ class StackedRNNModel:
         for layer in self.layers:
             layer.update()
 
+        return all_layer_norms[::-1] # Return the captured norms
 
 # 1. Setup small dummy data
 # 3 time steps, vocab size of 4
