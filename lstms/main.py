@@ -143,11 +143,64 @@ class LSTMLayer:
         return dx_seq
     
     def update(self):
-        # Prevent numbers from exploding
         np.clip(self.dW, -1, 1, out=self.dW)
         np.clip(self.db, -1, 1, out=self.db)
         
-        self.W -= self.lr * self.dW
-        self.b -= self.lr * self.dbs
+        # Layer weights are W and b, not Why and by
+        self.W -= self.lr * self.dW 
+        self.b -= self.lr * self.db
         
-    
+
+class StackedLSTM:
+    def __init__(self, input_dims, hidden_dims, output_dims, lr=0.1):
+
+        self.layers = []
+
+        current_input_dim = input_dims
+        for hidden in hidden_dims:
+            self.layers.append(LSTMLayer(current_input_dim, hidden, lr))
+            current_input_dim = hidden
+        
+        # weights for the final linear projection
+        self.Why = np.random.randn(hidden_dims[-1], output_dims)
+        self.by = np.zeros((1, output_dims))
+        self.lr = lr
+
+    def forward(self, x_seq):
+        current_input = x_seq
+
+        for layer in self.layers:
+            current_input = layer.forward(current_input)
+
+        self.last_h =  current_input
+        out = np.dot(self.last_h, self.Why) + self.by
+        return out
+
+    def backward(self, d_out):
+        """
+        d_out: Gradient of loss wrt final output (T, output_dim)
+        """
+        T = d_out.shape[0]
+
+        # 1. Backward through the Linear Head
+        # dL/dh_top = dL/dout * dout/dh = d_out * Wy.T
+        # d_out is (T, O), Why is (H, O) -> we need (T, H)
+        d_h_top = np.dot(d_out, self.Why.T)
+
+        # Update Linear Head weights
+        self.dWhy = np.dot(self.last_h.T, d_out)
+        self.dby = np.sum(d_out, axis=0, keepdims=True)
+
+        # 2. Backward through the LSTM Stack (Top to Bottom)
+        current_grad = d_h_top
+        for layer in reversed(self.layers):
+            current_grad = layer.backward(current_grad)
+
+    def update(self):
+        # Update LSTM layers
+        for layer in self.layers:
+            layer.update()
+            
+        # Update Linear Head
+        self.Why -= self.lr * self.dWhy
+        self.by -= self.lr * self.dby
