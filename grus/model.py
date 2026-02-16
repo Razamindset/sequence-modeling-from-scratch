@@ -51,8 +51,18 @@ class GRUS:
 
         return h_out
     
-    def backward(self):
+    def backward(self, dh_out):
+        T, H, D = len(dh_out), self.hidden_dim, self.input_dim
+        dh_next = np.zeros((1, H))
+
+        # Initilize the update matrices
+        
+
+        for t in reversed(range(T)):
+            pass
+
         pass
+
 
     def update(self):
         pass
