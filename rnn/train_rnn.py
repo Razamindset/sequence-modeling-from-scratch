@@ -1,5 +1,5 @@
 import numpy as np
-from rnn import VanillaRNN as RNN
+from vanilla import VanillaRNN as RNN
 
 # 1. Prepare Data
 phrases = [
