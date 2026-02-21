@@ -1,5 +1,5 @@
 import numpy as np
-from main import StackedLSTM 
+from recurrent.lstm import StackedLSTM 
 
 # This code does not converges very well because we need to do optimizations to the architecute vefore we can truly leverage the benefits of the LSTMS this includes initilization, batches, and learning rate opeimizers and weight decay... I don't really wanna spend time on optimization for now...
 # ! and this training code is completely AI generated 

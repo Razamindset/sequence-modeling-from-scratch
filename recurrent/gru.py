@@ -1,6 +1,6 @@
 import numpy as np
 
-class GRUS:
+class GRU:
     def __init__(self, input_dim, hidden_dim, lr=0.01):
         self.input_dim = input_dim
         self.hidden_dim = hidden_dim
@@ -20,10 +20,11 @@ class GRUS:
         self.W_cand = np.random.uniform(-limit_candd, limit_candd, (input_dim + hidden_dim, hidden_dim)) # after r*ht-1 the resulting is the modified hiddden state
         self.b_cand= np.zeros((1, hidden_dim))
 
-        # some memorey for faster tarining
-        # RMSprop memory
-        self.mW_g, self.mb_g = np.zeros_like(self.W_gates), np.zeros_like(self.b_gates)
-        self.mW_c, self.mb_c = np.zeros_like(self.W_cand), np.zeros_like(self.b_cand)
+        # Inside GRUS.__init__
+        self.dW_gates = np.zeros_like(self.W_gates)
+        self.db_gates = np.zeros_like(self.b_gates)
+        self.dW_cand = np.zeros_like(self.W_cand)
+        self.db_cand = np.zeros_like(self.b_cand)
         
 
     def sigmoid(self, x):
@@ -140,15 +141,14 @@ class GRUS:
             # Let us accumulate the the dh_t and dx_seq
             dx_seq[t] = dx_gates + dx_cand
             dh_next = dh_prev_mix + dh_prev_cand + dh_prev_gates
-        
-        # Update the weights 
-        # Update weights using RMSprop
-        for W, dW, m in zip([self.W_gates, self.W_cand], [dW_gates, dW_cand], [self.mW_g, self.mW_c]):
-            m[:] = 0.9 * m + 0.1 * (dW**2)
-            W -= self.lr * dW / (np.sqrt(m) + 1e-8)
-            
-        for b, db, m in zip([self.b_gates, self.b_cand], [db_gates, db_cand], [self.mb_g, self.mb_c]):
-            m[:] = 0.9 * m + 0.1 * (db**2)
-            b -= self.lr * db / (np.sqrt(m) + 1e-8)
 
         return dx_seq
+
+    
+    def get_params(self):
+        return {
+            "W_gates": (self.W_gates, self.dW_gates),
+            "b_gates": (self.b_gates, self.db_gates),
+            "W_cand":  (self.W_cand, self.dW_cand),
+            "b_cand":  (self.b_cand, self.db_cand)
+        }

@@ -1,5 +1,5 @@
 import numpy as np
-from model import GRUS
+from recurrent.gru import GRUS
 
 # ! this code is ai generated
 
@@ -24,6 +24,11 @@ print(f"Vocab size: {vocab_size}, Chars: {chars}")
 hidden_dim = 32
 learning_rate = 0.001
 epochs = 15000
+
+
+#! Since the final ;;ayer os npt part of the rms prop momentum... 
+# the two parts of the model that are the recurrent units and the final linear projection are not converging better 
+# We add the final projection to the rms prop too
 
 # Initialize Layers
 gru = GRUS(input_dim=vocab_size, hidden_dim=hidden_dim, lr=learning_rate)

@@ -1,0 +1,12 @@
+==== FINAL COMPARISON ====
+RNN Time: 26.59 sec
+GRU Time: 31.38 sec
+LSTM Time: 27.27 sec
+
+Final RNN Loss: 2.5422
+Final GRU Loss: 1.1665
+Final LSTM Loss: 0.0701
+
+RNN Total Parameters: 23965
+GRU Total Parameters: 25263
+LSTM Total Parameters: 25949

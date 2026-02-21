@@ -1,6 +1,6 @@
 import matplotlib.pyplot as plt
 import numpy as np
-from stacked import StackedRNNModel
+from recurrent.rnn import StackedRNNModel
 
 # --- Setup a deeper test to see the vanishing effect ---
 T = 40
