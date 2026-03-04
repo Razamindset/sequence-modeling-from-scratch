@@ -1,0 +1,18 @@
+1. Generate the "Memory Trigger" Dataset
+We want a sequence like: X-------------------X.
+The middle characters should be random noise so the model can't "cheat" by learning a pattern. It has to physically store the 'X' in its hidden state/cell state.
+
+2. Modify the Training Loop for "Many-to-One"
+In your previous experiments, you did "Many-to-Many" (predicting every character). For this research test, we only care about the final prediction.
+
+3. The Research Protocol (The Loop)
+To get a proper research graph, you need to run this for different lengths. This is where you will see the "Memory Wall."
+
+4. What you will see (The Vanishing Gradient Visualization)
+When you plot lengths (x-axis) vs accuracy (y-axis):
+
+Standard RNN: Accuracy will be 100% at length 10, then drop to random chance (50% for two triggers) very quickly. This is your mathematical proof that gradients have vanished.
+
+GRU: Will stay at 100% much longer than the RNN but will eventually "forget" around length 80-100.
+
+LSTM: Should hold 100% accuracy the longest. If it fails, it’s usually because the sequence is so long that even the cell state is getting diluted by noise.

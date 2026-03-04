@@ -4,6 +4,7 @@ from recurrent.dense import Dense as OutputLayer
 from recurrent.gru import GRU
 from recurrent.lstm import LSTMLayer
 
+import matplotlib.pyplot as plt
 import numpy as np
 import time
 
@@ -31,18 +32,6 @@ def prepare_data(string):
 x_data, y_targets = prepare_data(text)
 x_train = x_data[:-1]
 y_train = y_targets[1:]
-
-import matplotlib.pyplot as plt
-
-# def count_parameters(model):
-#     total = 0
-#     for layer in model.layers:
-#         for param in layer.params:
-#             total += np.prod(param.shape)
-#     for param in model.output_layer.params:
-#         total += np.prod(param.shape)
-#     return total
-
 
 def train_with_logging(model, x_full, y_full, window_size=32, epochs=300):
     losses = []
