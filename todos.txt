@@ -1,0 +1,4 @@
+I was sick for somedays so I could not do any work
+1. For now I was feeling ery frustuated with the lstm grus and rnns. For running different tests I would have to change some of the implementiaon details. I really don't want to look at that code now.
+For now I will move on to attention, I will implement it, it will make get in the flow again and get my interest flowing with the mathematics.
+2. We will start working on attention and trasfomers

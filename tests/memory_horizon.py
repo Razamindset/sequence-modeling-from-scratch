@@ -26,56 +26,6 @@ def get_memory_batch(batch_size, seq_len, vocab_size):
     x = np.eye(vocab_size)[noise]
     return x, secrets
 
-def run_memory_test(model, seq_len, vocab_size, iterations=200):
-    """Trains the model to remember a bit over L steps."""
-    for i in range(iterations):
-        x_batch, y_batch = get_memory_batch(1, seq_len, vocab_size)
-        
-        # 1. Forward pass
-        # x_batch is (1, seq_len, vocab_size)
-        # We only pass the first element [0] because our models expect (T, D)
-        hidden_seq = model.forward(x_batch[0]) 
-        
-        # 2. Get prediction (the last hidden state)
-        # Assuming model.output_layer handles the (1, H) -> (1, Vocab)
-        probs = model.output_layer.forward(hidden_seq[-1:]) # Only last step
-        
-        # 3. Calculate Loss (Cross Entropy)
-        # (Standard code for loss/backprop would go here)
-        # ...
-        
-        # 4. Backward Pass (Many-to-One)
-        # We create a gradient that is all ZEROS except for the last time step
-        d_last_h = model.output_layer.backward(y_batch) 
-        dh_seq = np.zeros_like(hidden_seq)
-        dh_seq[-1] = d_last_h 
-        
-        model.layers[0].backward(dh_seq)
-        model.optimizer.step()
-        
-    # Check Accuracy
-    test_x, test_y = get_memory_batch(50, seq_len, vocab_size)
-    correct = 0
-    for j in range(50):
-        h = model.forward(test_x[j])
-        p = model.output_layer.forward(h[-1:])
-        if np.argmax(p) == test_y[j]: correct += 1
-    
-    return correct / 50
-
-import numpy as np
-
-# --- 1. Helper for Loss and Softmax ---
-def softmax(x):
-    # Stabilized softmax to prevent overflow
-    e_x = np.exp(x - np.max(x, axis=-1, keepdims=True))
-    return e_x / np.sum(e_x, axis=-1, keepdims=True)
-
-def cross_entropy_loss(probs, target_idx):
-    # probs: (1, vocab_size), target_idx: integer
-    # Returns scalar loss
-    return -np.log(probs[0, target_idx] + 1e-12)
-
 # --- 2. The Completed Training Loop ---
 def run_memory_test(model, seq_len, vocab_size, iterations=400):
     """Trains the model to remember a bit over L steps."""
@@ -84,26 +34,22 @@ def run_memory_test(model, seq_len, vocab_size, iterations=400):
         target = y_batch[0]
         
         # 1. Forward pass
-        # x_batch[0] shape: (seq_len, vocab_size)
-        hidden_seq = model.forward(x_batch[0]) 
+        # FIX: Bypass SequentialModel and call the recurrent layer directly 
+        # so we get (seq_len, hidden_size) instead of the final logits.
+        hidden_seq = model.layers[0].forward(x_batch[0]) 
         
         # 2. Prediction (Many-to-One)
-        # We only use the hidden state from the VERY LAST time step
         logits = model.output_layer.forward(hidden_seq[-1:]) # Shape: (1, vocab_size)
         probs = softmax(logits)
         
         # 3. Calculate Gradient for the Output Layer
-        # Standard Cross-Entropy + Softmax gradient: (probs - target)
         d_logits = probs.copy()
         d_logits[0, target] -= 1
         
         # 4. Backward Pass through Output Layer
-        # d_last_h is the gradient with respect to the last hidden state
         d_last_h = model.output_layer.backward(d_logits)
         
         # 5. Many-to-One Gradient Assembly
-        # We create a full sequence of gradients for the recurrent layer
-        # It's all zeros EXCEPT for the last step where the "error" entered
         dh_seq = np.zeros_like(hidden_seq)
         dh_seq[-1] = d_last_h 
         
@@ -115,12 +61,24 @@ def run_memory_test(model, seq_len, vocab_size, iterations=400):
     test_x, test_y = get_memory_batch(50, seq_len, vocab_size)
     correct = 0
     for j in range(50):
-        h = model.forward(test_x[j])
+        # FIX: Use layers[0] here as well
+        h = model.layers[0].forward(test_x[j])
         p = softmax(model.output_layer.forward(h[-1:]))
         if np.argmax(p) == test_y[j]: 
             correct += 1
     
     return correct / 50
+
+# --- 1. Helper for Loss and Softmax ---
+def softmax(x):
+    # Stabilized softmax to prevent overflow
+    e_x = np.exp(x - np.max(x, axis=-1, keepdims=True))
+    return e_x / np.sum(e_x, axis=-1, keepdims=True)
+
+def cross_entropy_loss(probs, target_idx):
+    # probs: (1, vocab_size), target_idx: integer
+    # Returns scalar loss
+    return -np.log(probs[0, target_idx] + 1e-12)
 
 lstm_h = 64
 gru_h = 74
