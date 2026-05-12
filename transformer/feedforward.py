@@ -1,7 +1,7 @@
 import numpy as np
 
 class FeedForward:
-    def __int__(self, d_model, d_ff=2048):
+    def __init__(self, d_model, d_ff=2048):
         # layer 1: 512->2048
         self.W1 = np.random.randn(d_model, d_ff) * np.sqrt(2 / d_model)
         self.b1 = np.zeros(d_ff)
@@ -16,14 +16,45 @@ class FeedForward:
     def forward(self, x):
         # (seq_len, 512) @ (512, 2048) -> (seq_len, 2048)
         # Projection to a higher dimension
-        hidden = np.dot(x, self.W1) + self.b1
+        self.hidden = np.dot(x, self.W1) + self.b1
+
+        self.hidden_post = self.relu(self.hidden)
 
         # Step 2: Contract back to 512 dimensions
         # (seq_len, 2048) @ (2048, 512) -> (seq_len, 512)
-        output = np.dot(hidden, self.W2) + self.b2
+        output = np.dot(self.hidden_post, self.W2) + self.b2
 
         return output
     
     
-    def backward(self, dUpstream):
-        pass
+    def backward(self, dUpstream, X):
+        T, D = dUpstream.shape
+
+        dF = dUpstream
+
+        db2 = np.sum(dF, axis=0)
+
+        dW2 = np.dot(self.hidden_post.T, dF) 
+
+
+        dH_post = np.dot(dF, self.W2.T)
+
+        # Through hte activation layer
+        dH_pre = np.copy(dH_post)
+
+        dH_pre[self.hidden <= 0] = 0
+
+        db1 = np.sum(dH_pre, axis=0)
+
+        dW1 = np.dot(X.T, dH_pre)
+
+        dL1 = np.dot(dH_pre, self.W1.T)
+
+
+        self.b2 -= db2
+        self.W2 -= dW2
+
+        self.b1 -= db1
+        self.W1 -= dW1
+
+        return dL1
