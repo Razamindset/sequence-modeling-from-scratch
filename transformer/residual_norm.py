@@ -12,6 +12,9 @@ import numpy as np
 class ResidualNorm:
     def __init__(self, d_model, eps=1e-6):
         self.eps = eps
+
+        self.lr = 0.001
+
         # Learnable parameters (initialized to 1s and 0s)
         self.gamma = np.ones(d_model)
         self.beta = np.zeros(d_model)
@@ -22,10 +25,53 @@ class ResidualNorm:
         out = x + sublayer_output
 
         # 2. Norm (Layer Normalization)
-        mean = out.mean(axis=-1, keepdims=True)
-        std = out.std(axis=-1, keepdims=True)
+        self.mean = out.mean(axis=-1, keepdims=True)
+        self.std = out.std(axis=-1, keepdims=True)
 
         # Norm = Gemma * [ (x - mean) / (varience - epsilon)**1/2 ] + Beta
-        norm_out = self.gamma * (out - mean) / (std + self.eps) + self.beta # root(var) = std
+
+        self.post_norm = (out - self.mean) / (self.std + self.eps)
+        norm_out = self.gamma * self.post_norm + self.beta # root(var) = std
 
         return norm_out
+    
+
+    def backward(self, dUpstream):
+        # T = sequence length, D = d_model
+        T, D = dUpstream.shape
+
+        db = np.sum(dUpstream, axis=0)
+
+        dGamma = np.sum(dUpstream*self.post_norm, axis=0)
+
+        # 2. Gradient for the normalized input (d_hat_z)
+        dPostNorm = dUpstream * self.gamma # shape = (T, d_model)
+
+        # 3. Gradient for the un-normalized input (dZ)
+        # This is the "heavy" LayerNorm gradient equation
+        # We need means across the feature dimension (axis -1)
+
+        term1 = dPostNorm
+        term2 = np.mean(dPostNorm, axis=-1, keepdims=True)
+        term3 = self.post_norm * np.mean(dPostNorm * self.post_norm, axis=-1, keepdims=True)
+
+        dPreNorm = (term1 - term2 - term3) / self.std
+
+        # Now we have the gradients here so we can update them...
+        # If using a optimizer then we can hand it iver ot the optimizer 
+
+        # There are only two learnable paramerters here one is the 
+        # 1. Scaling Gamma
+        # 2. Shiftig Beta
+
+        # This will fail to convere due to the germetry of the attention loss landscape
+        self.beta -= self.lr * db
+
+        self.gamma -= self.lr * dGamma
+
+        # Now we can divide the gradiet to the L1 output and the output of the FFN that is F1
+        # THe exact equations are present in my notes
+        return dPreNorm, dPreNorm
+    
+
+

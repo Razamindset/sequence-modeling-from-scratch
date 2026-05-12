@@ -25,3 +25,5 @@ class FeedForward:
         return output
     
     
+    def backward(self, dUpstream):
+        pass
