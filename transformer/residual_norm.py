@@ -25,13 +25,12 @@ class ResidualNorm:
         out = x + sublayer_output
 
         # 2. Norm (Layer Normalization)
-        self.mean = out.mean(axis=-1, keepdims=True)
-        self.std = out.std(axis=-1, keepdims=True)
+        self.var = self.out.var(axis=-1, keepdims=True)
+        self.std = np.sqrt(self.var + self.eps)
 
         # Norm = Gemma * [ (x - mean) / (varience - epsilon)**1/2 ] + Beta
-
-        self.post_norm = (out - self.mean) / (self.std + self.eps)
-        norm_out = self.gamma * self.post_norm + self.beta # root(var) = std
+        self.post_norm = (self.out - self.mean) / self.std
+        norm_out = self.gamma * self.post_norm + self.beta
 
         return norm_out
     

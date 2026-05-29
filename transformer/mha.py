@@ -9,8 +9,8 @@ class MultiHeadAttention:
         self.lr = lr
 
         self.Wq = np.random.randn(d_model, d_model) / np.sqrt(2/d_model)
-        self.Wk = np.random.randn(d_model, d_model) * np.sqrt(2 / d_model)
-        self.Wv = np.random.randn(d_model, d_model) * np.sqrt(2 / d_model)
+        self.Wk = np.random.randn(d_model, d_model) / np.sqrt(2 / d_model)
+        self.Wv = np.random.randn(d_model, d_model) / np.sqrt(2 / d_model)
 
         # Output projection
 
@@ -42,7 +42,7 @@ class MultiHeadAttention:
         self.probs = self.softmax(self.scores)
 
         # 4. Multiply by V -> (h, T, d_k)
-        self.att_out = np.matmul(self.probs)
+        self.att_out = np.matmul(self.probs, self.v)
         
         # Concat and reshape in to the standard size
         self.concat = self.att_out.transpose(1, 0, 2).reshape(T, self.d_model)
@@ -61,7 +61,7 @@ class MultiHeadAttention:
 
         # Split the grandint into the heads
         # Reshape back to (h, T, d_k)
-        dAttnOut = dConcat.rehape(T, self.h, self.d_k).transpose(1, 0, 2)
+        dAttnOut = dConcat.reshape(T, self.h, self.d_k).transpose(1, 0, 2)
 
         # Gradient wrt the value layer
         dv = np.matmul(self.probs.transpose(0, 2, 1), dAttnOut)

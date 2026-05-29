@@ -16,6 +16,16 @@ class TokenEmbedding:
         
         # Scale as per the paper
         return embeddings * np.sqrt(self.d_model)
+    
+    def backward(self, dUpstream):
+        # reverse the scaling factor first 
+        dEmbeddings = dUpstream * np.sqrt(self.d_model)
+
+        dW = np.zeros_like(self.weights)
+
+        np.add.at(dW, self.x, dEmbeddings)
+
+        return dW
 
 # --- Simple Test ---
 sentence = "Sequence modeling from scratch"
