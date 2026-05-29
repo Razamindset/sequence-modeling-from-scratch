@@ -57,12 +57,6 @@ class FeedForward:
         dL1 = np.dot(dH_pre, self.W1.T)
 
 
-        self.b2 -= self.db2
-        self.W2 -= self.dW2
-
-        self.b1 -= self.db1
-        self.W1 -= self.dW1
-
         return dL1
     
     def get_params(self):

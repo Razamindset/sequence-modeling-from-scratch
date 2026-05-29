@@ -8,9 +8,9 @@ class MultiHeadAttention:
         self.d_k = d_model // h
         self.lr = lr
 
-        self.Wq = np.random.randn(d_model, d_model) / np.sqrt(2/d_model)
-        self.Wk = np.random.randn(d_model, d_model) / np.sqrt(2 / d_model)
-        self.Wv = np.random.randn(d_model, d_model) / np.sqrt(2 / d_model)
+        self.Wq = np.random.randn(d_model, d_model) / np.sqrt(d_model)
+        self.Wk = np.random.randn(d_model, d_model) / np.sqrt(d_model)
+        self.Wv = np.random.randn(d_model, d_model) / np.sqrt(d_model)
 
         # Output projection
 
