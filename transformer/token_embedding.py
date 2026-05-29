@@ -25,17 +25,9 @@ class TokenEmbedding:
 
         np.add.at(dW, self.x, dEmbeddings)
 
-        return dW
+        self.dWeights = dW
 
-# --- Simple Test ---
-sentence = "Sequence modeling from scratch"
-vocab = {"<PAD>": 0, "sequence": 1, "modeling": 2, "from": 3, "scratch": 4}
-
-# 1D input: just the IDs for one sentence
-input_ids = [1, 2, 3, 4] 
-
-embed_layer = TokenEmbedding(vocab_size=len(vocab), d_model=4)
-output = embed_layer.forward(input_ids)
-
-print("Output Shape (Seq_Len, d_model):", output.shape) 
-print("\nEach row is a word's vector:\n", output)
+        return None
+    
+    def get_params(self):
+        return {"weights": (self.weights, self.dWeights)}

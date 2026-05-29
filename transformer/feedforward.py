@@ -32,9 +32,9 @@ class FeedForward:
 
         dF = dUpstream
 
-        db2 = np.sum(dF, axis=0)
+        self.db2 = np.sum(dF, axis=0)
 
-        dW2 = np.dot(self.hidden_post.T, dF) 
+        self.dW2 = np.dot(self.hidden_post.T, dF) 
 
 
         dH_post = np.dot(dF, self.W2.T)
@@ -44,17 +44,23 @@ class FeedForward:
 
         dH_pre[self.hidden <= 0] = 0
 
-        db1 = np.sum(dH_pre, axis=0)
+        self.db1 = np.sum(dH_pre, axis=0)
 
-        dW1 = np.dot(X.T, dH_pre)
+        self.dW1 = np.dot(X.T, dH_pre)
 
         dL1 = np.dot(dH_pre, self.W1.T)
 
 
-        self.b2 -= db2
-        self.W2 -= dW2
+        self.b2 -= self.db2
+        self.W2 -= self.dW2
 
-        self.b1 -= db1
-        self.W1 -= dW1
+        self.b1 -= self.db1
+        self.W1 -= self.dW1
 
         return dL1
+    
+    def get_params(self):
+        return {
+            "W1": (self.W1, self.dW1), "b1": (self.b1, self.db1),
+            "W2": (self.W2, self.dW2), "b2": (self.b2, self.db2)
+        }

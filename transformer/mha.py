@@ -56,7 +56,7 @@ class MultiHeadAttention:
         T, D = dUpstream.shape
 
         # 1. Final projection bvackward
-        dWo = np.dot(self.concat.T, dUpstream)
+        self.dWo = np.dot(self.concat.T, dUpstream)
         dConcat = np.dot(dUpstream, self.Wo.T) # (T, d_model)
 
         # Split the grandint into the heads
@@ -86,19 +86,19 @@ class MultiHeadAttention:
         dv_linear = dv.transpose(1, 0, 2).reshape(T, D)
 
         # --- Step 1: Linear Projections Backward ---
-        dWq = np.dot(self.x.T, dq_linear)
-        dWk = np.dot(self.x.T, dk_linear)
-        dWv = np.dot(self.x.T, dv_linear)
+        self.dWq = np.dot(self.x.T, dq_linear)
+        self.dWk = np.dot(self.x.T, dk_linear)
+        self.dWv = np.dot(self.x.T, dv_linear)
 
         # Gradient flowing back to input X from all 3 branches
         dX = (np.dot(dq_linear, self.Wq.T) + 
               np.dot(dk_linear, self.Wk.T) + 
               np.dot(dv_linear, self.Wv.T))
 
-        # --- Update Weights (SGD) ---
-        self.Wo -= self.lr * dWo
-        self.Wq -= self.lr * dWq
-        self.Wk -= self.lr * dWk
-        self.Wv -= self.lr * dWv
-
         return dX
+    
+    def get_params(self):
+        return {
+            "Wq": (self.Wq, self.dWq), "Wk": (self.Wk, self.dWk),
+            "Wv": (self.Wv, self.dWv), "Wo": (self.Wo, self.dWo)
+        }

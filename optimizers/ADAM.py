@@ -1,7 +1,7 @@
 import numpy as np
 
 class ADAM:
-    def __init__(self, layers, learning_rate, beta1=0.9, beta2=0.999, epsilon=1e-8):
+    def __init__(self, layers, learning_rate=1e-3, beta1=0.9, beta2=0.999, epsilon=1e-8):
         self.layers = layers
         self.lr = learning_rate
         self.beta1 = beta1
@@ -14,6 +14,7 @@ class ADAM:
         self.m = []
         self.v = []
 
+        # Initialize moments to zero for every parameter in every layer
         for layer in self.layers:
             # We assume each layer has a .params() method returning (weight, gradient) tuples
             layer_m = {name: np.zeros_like(p) for name, (p, grad) in layer.get_params().items()}
@@ -23,14 +24,15 @@ class ADAM:
 
     def step(self):
         self.t += 1
-
-    def step(self):
-        self.t += 1
         for i, layer in enumerate(self.layers):
-            # Change params to params.items() here!
             params = layer.get_params()
             for name, (p, grad) in params.items(): 
+                # Skip if there's no gradient yet (e.g., before first backward pass)
+                if grad is None:
+                    continue
+                    
                 np.clip(grad, -1, 1, out=grad) # Clip in-place
+                
                 # 1. Update biased first moment estimate
                 self.m[i][name] = self.beta1 * self.m[i][name] + (1 - self.beta1) * grad
                 

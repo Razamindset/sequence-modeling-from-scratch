@@ -39,9 +39,9 @@ class ResidualNorm:
         # T = sequence length, D = d_model
         T, D = dUpstream.shape
 
-        db = np.sum(dUpstream, axis=0)
+        self.dBeta = np.sum(dUpstream, axis=0)
 
-        dGamma = np.sum(dUpstream*self.post_norm, axis=0)
+        self.dGamma = np.sum(dUpstream*self.post_norm, axis=0)
 
         # 2. Gradient for the normalized input (d_hat_z)
         dPostNorm = dUpstream * self.gamma # shape = (T, d_model)
@@ -63,14 +63,10 @@ class ResidualNorm:
         # 1. Scaling Gamma
         # 2. Shiftig Beta
 
-        # This will fail to convere due to the germetry of the attention loss landscape
-        self.beta -= self.lr * db
-
-        self.gamma -= self.lr * dGamma
-
         # Now we can divide the gradiet to the L1 output and the output of the FFN that is F1
         # THe exact equations are present in my notes
         return dPreNorm, dPreNorm
     
-
+    def get_params(self):
+        return {"gamma": (self.gamma, self.dGamma), "beta": (self.beta, self.dBeta)}
 
