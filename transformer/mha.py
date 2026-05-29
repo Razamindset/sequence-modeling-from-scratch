@@ -44,6 +44,15 @@ class MultiHeadAttention:
         # 3. Scaled Dot-Product Attention
         # scores = (h, T, T)
         self.scores = np.matmul(self.q, self.k.transpose(0, 2, 1)) / np.sqrt(self.d_k) 
+
+        # Masked MHa is impportant if i want to do seomthing like next token pred
+        # 1. Create an upper triangular matrix of 1s above the main diagonal
+        mask = np.triu(np.ones((T, T)), k=1)  
+        # 2. Convert 1s to -1e9 (effectively negative infinity) and 0s to 0.0
+        mask = mask * -1e9                     
+        # 3. Add mask to scores (broadcasting automatically handles the head dimension)
+        self.scores = self.scores + mask
+
         self.probs = self.softmax(self.scores)
 
         # 4. Multiply by V -> (h, T, d_k)

@@ -1,6 +1,7 @@
 import numpy as np
 from model import TransformerBlock
 from token_embedding import TokenEmbedding
+from positional_encoding import PositionalEncoding
 from ADAM import ADAM
 from head import LMHead
 from cross_entropy_loss import SoftmaxCrossEntropy
@@ -13,12 +14,13 @@ d_ff = 16
 
 # Initialize all network layers
 embedding = TokenEmbedding(vocab_size, d_model)
+pos_encoder = PositionalEncoding(d_model) 
 block = TransformerBlock(d_model, heads, d_ff)
 lm_head = LMHead(d_model, vocab_size)
 loss_fn = SoftmaxCrossEntropy()
 
 # Register ALL layers containing parameters into ADAM
-optimizer = ADAM(layers=[embedding, block, lm_head], learning_rate=1e-2)
+optimizer = ADAM(layers=[embedding, pos_encoder, block, lm_head], learning_rate=1e-2)
 
 # --- SIMULATED TRAINING UTILITY ---
 
@@ -32,6 +34,7 @@ print("--- Starting Architecture Test ---")
 for epoch in range(10):
     # 1. Forward Pass
     x_embed = embedding.forward(input_tokens)
+    x_pos = pos_encoder.forward(x_embed)
     x_block = block.forward(x_embed)
     logits = lm_head.forward(x_block)
     
@@ -45,6 +48,7 @@ for epoch in range(10):
     dLoss = loss_fn.backward()          # (seq_len, vocab_size)
     dLMHead = lm_head.backward(dLoss)    # (seq_len, d_model)
     dBlock = block.backward(dLMHead)     # (seq_len, d_model)
+    dPos = pos_encoder.backward(dBlock)
     embedding.backward(dBlock)           # Resolves internally via np.add.at
 
     # 3. Optimization Step

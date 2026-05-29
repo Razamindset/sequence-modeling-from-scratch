@@ -35,14 +35,9 @@ class PositionalEncoding:
         print(self.pe[:seq_len, :])
         return x_embeddings + self.pe[:seq_len, :]
     
+    def backward(self, dUpstream):
+        return dUpstream  # Gradient passes through unchanged
 
-# --- Simple Test ---
-d_model = 4
-# Assume we have 3 words from our previous step
-word_vectors = np.random.randn(3, d_model) 
-
-pe_layer = PositionalEncoding(d_model=d_model)
-final_input = pe_layer.forward(word_vectors)
-
-print("Word Vectors (Semantics):\n", word_vectors)
-print("\nFinal Input (Semantics + Position):\n", final_input)
+    def get_params(self):
+        return {}         # No learnable parameters for ADAM
+    
