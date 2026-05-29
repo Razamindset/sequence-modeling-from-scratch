@@ -6,10 +6,13 @@ class TokenEmbedding:
         # The lookup table: rows = words in vocab, cols = embedding size
         self.weights = np.random.randn(vocab_size, d_model) * 0.01
 
+        self.dWeights = None
+
     def forward(self, x):
         """
         x is now just a 1D list/array of IDs: [1, 2, 3...]
         """
+        self.x = x
         # Lookup word vectors
         # Result Shape: (seq_len, d_model)
         embeddings = self.weights[x]

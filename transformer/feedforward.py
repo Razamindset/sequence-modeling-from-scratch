@@ -10,10 +10,16 @@ class FeedForward:
         self.W2 = np.random.randn(d_ff, d_model) * np.sqrt(2 / d_ff)
         self.b2 = np.zeros(d_model)
 
+        self.dW1 = None
+        self.db1 = None
+        self.dW2 = None
+        self.db2 = None
+
     def relu(self, x):
         return np.maximum(0, x)
 
     def forward(self, x):
+        self.x = x
         # (seq_len, 512) @ (512, 2048) -> (seq_len, 2048)
         # Projection to a higher dimension
         self.hidden = np.dot(x, self.W1) + self.b1
@@ -27,7 +33,7 @@ class FeedForward:
         return output
     
     
-    def backward(self, dUpstream, X):
+    def backward(self, dUpstream):
         T, D = dUpstream.shape
 
         dF = dUpstream
@@ -46,7 +52,7 @@ class FeedForward:
 
         self.db1 = np.sum(dH_pre, axis=0)
 
-        self.dW1 = np.dot(X.T, dH_pre)
+        self.dW1 = np.dot(self.x.T, dH_pre)
 
         dL1 = np.dot(dH_pre, self.W1.T)
 

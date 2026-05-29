@@ -16,6 +16,11 @@ class MultiHeadAttention:
 
         self.Wo = np.random.randn(d_model, d_model) * np.sqrt(2 / d_model)
 
+        self.dWq = None
+        self.dWk = None
+        self.dWv = None
+        self.dWo = None
+
     def softmax(self, x):
         # Subtracting max for numerical stability (prevents exp(large_number) = inf)
         e_x = np.exp(x - np.max(x, axis=-1, keepdims=True))
@@ -32,9 +37,9 @@ class MultiHeadAttention:
 
         # 2. Split into heads -> (h, T, d_k)
         # Reshape to (T, h, d_k) then transpose to (h, T, d_k)
-        self.q = self.q_linear.reshape(T, self.d_k).transpose(1, 0, 2)
-        self.k = self.k_linear.reshape(T, self.d_k).transpose(1, 0, 2)
-        self.v = self.v_linear.reshape(T, self.d_k).transpose(1, 0, 2)
+        self.q = self.q_linear.reshape(T, self.h, self.d_k).transpose(1, 0, 2)
+        self.k = self.k_linear.reshape(T, self.h, self.d_k).transpose(1, 0, 2)
+        self.v = self.v_linear.reshape(T, self.h, self.d_k).transpose(1, 0, 2)
 
         # 3. Scaled Dot-Product Attention
         # scores = (h, T, T)
