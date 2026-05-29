@@ -10,7 +10,7 @@ class PositionalEncoding:
 
         position = np.arange(max_len).reshape(-1, 1)
 
-        print(position)
+        # print(position)
         # 3. Calculate the 'div_term' (the denominator 10000^(2i/d_model))
 
         # x^y = e^{y . ln(x)}
@@ -32,7 +32,7 @@ class PositionalEncoding:
         
         # Add the positional encoding to the word embeddings
         # We only take the first 'seq_len' rows of our pre-calculated matrix
-        print(self.pe[:seq_len, :])
+        # print(self.pe[:seq_len, :])
         return x_embeddings + self.pe[:seq_len, :]
     
     def backward(self, dUpstream):
